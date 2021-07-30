@@ -372,10 +372,14 @@ class FromJSON a where
     parseJSON = genericParseJSON defaultOptions
 
     parseJSONList :: Value -> Parser [a]
-    parseJSONList = withArray "[]" $ \a ->
-          zipWithM (parseIndexedJSON parseJSON) [0..]
-        . V.toList
-        $ a
+    parseJSONList obj =
+      case obj of
+        Array o -> withArray "[]" (\a ->
+                      zipWithM (parseIndexedJSON parseJSON) [0..]
+                    . V.toList
+                    $ a) obj
+        Object x -> pure <$> parseJSON obj
+        _ -> pure []
 
 -------------------------------------------------------------------------------
 --  Classes and types for map keys
